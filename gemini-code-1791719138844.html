@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="lo" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidphuchun - ສູນເຕີມເກມຢ່າງເປັນທາງການ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Firebase App SDK & Realtime Database (CDN ສຳລັບເຊື່ອມຕໍ່ Server Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#3b82f6',
+                            darkBlue: '#1d4ed8',
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            cardHover: '#334155',
+                            input: '#090d16',
+                            border: '#334155'
+                        }
+                    },
+                    fontFamily: {
+                        lao: ['Noto Sans Lao', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Noto Sans Lao', sans-serif; 
+            background-color: #0f172a;
+            color: #f3f4f6;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        .active-game-card {
+            border: 2px solid #3b82f6 !important;
+            background-color: #334155 !important;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        .modal-fade {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16 selection:bg-brand-blue selection:text-white">
+
+    <!-- Top Header Navigation Bar -->
+    <header class="bg-[#1e293b] border-b border-brand-border sticky top-0 z-50 px-4 py-3 shadow-xl">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <!-- Brand Logo & Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden shadow-lg border border-brand-border bg-brand-card flex items-center justify-center">
+                    <img src="Free Fire.png" alt="Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/3b82f6/ffffff?text=TP'">
+                </div>
+                <div>
+                    <h1 class="text-base font-extrabold text-white tracking-wide leading-tight">
+                        Tidphuchun <span class="text-xs font-normal text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/40">OFFICIAL</span>
+                    </h1>
+                    <p class="text-[11px] text-gray-400">ສູນເຕີມເກມຢ່າງເປັນທາງການ</p>
+                </div>
+            </div>
+
+            <!-- Auth Buttons or Profile Area -->
+            <div id="header-auth-area" class="flex items-center gap-2">
+                <button onclick="openModal('login')" class="text-xs font-bold px-3 py-2 rounded-xl border border-brand-border bg-brand-card hover:bg-brand-cardHover text-gray-200 transition active:scale-95">
+                    ເຂົ້າສູ່ລະບົບ
+                </button>
+                <button onclick="openModal('register')" class="text-xs font-bold px-3 py-2 rounded-xl bg-brand-blue hover:bg-brand-darkBlue text-white shadow-lg shadow-brand-blue/30 transition active:scale-95">
+                    ສະໝັກສະມາຊິກ
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-3 sm:px-4 py-4 space-y-6">
+
+        <!-- Promotional Banner Section -->
+        <div class="relative rounded-2xl overflow-hidden shadow-2xl border border-brand-border bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex-1 flex flex-col justify-center text-left relative z-10 min-h-[160px]">
+                <div class="inline-flex items-center gap-1.5 bg-brand-blue/20 border border-brand-blue/50 text-brand-blue text-[11px] font-bold px-2.5 py-0.5 rounded-full w-max mb-2">
+                    <span class="w-2 h-2 rounded-full bg-brand-blue animate-ping"></span>
+                    ໂປຣໂມຊັນພິເສດ
+                </div>
+                <h2 id="banner-title" class="text-2xl sm:text-3xl font-black text-white mb-2 leading-tight drop-shadow-md">
+                    ເຕີມ Free Fire ຮັບໂບນັດ 300%
+                </h2>
+                <p class="text-gray-300 text-xs sm:text-sm mb-4 max-w-md">
+                    ເຕີມເພັດເກມຜ່ານເວັບ Tidphuchun ຮັບເພັດເພີ່ມທັນທີ ຟຣີຄ່າທຳນຽມ ຈ່າຍງ່າຍຜ່ານ BCEL One ແລະ ບັດໂທລະສັບ.
+                </p>
+                <div>
+                    <a href="#topup-section" class="bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-lg shadow-brand-blue/30 transition active:scale-95 inline-block">
+                        ເຕີມເລີຍ >
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Side Cover Image -->
+            <div class="w-full sm:w-auto relative z-10 flex justify-center items-center">
+                <img src="ໜ້າປົກ.png" alt="ໜ້າປົກ" class="max-h-40 sm:max-h-48 object-contain rounded-2xl shadow-xl border border-brand-border/60 transition hover:scale-105 duration-300" onerror="this.src='https://via.placeholder.com/200x150/1e293b/3b82f6?text=Tidphuchun'">
+            </div>
+
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-brand-blue/20 rounded-full blur-3xl pointer-events-none"></div>
+        </div>
+
+        <!-- Select Game Section -->
+        <section class="bg-[#1e293b] rounded-2xl p-4 sm:p-5 border border-brand-border shadow-xl">
+            <h2 class="text-lg font-extrabold text-white mb-4 flex items-center gap-2">
+                <span>🎮</span> ເລືອກເກມ (Select Game)
+            </h2>
+
+            <div class="grid grid-cols-3 gap-3 sm:gap-4 max-w-md mx-auto sm:max-w-none" id="game-grid">
+                
+                <!-- Game 1: Free Fire -->
+                <button onclick="switchGame('ff', 'Free Fire', 'Free Fire.png')" id="card-ff" class="game-card active-game-card bg-brand-card hover:bg-brand-cardHover p-3 rounded-2xl flex flex-col items-center text-center transition-all duration-200 relative group border border-brand-border active:scale-95">
+                    <span class="absolute top-1 right-1 bg-brand-blue text-[9px] font-black px-1.5 py-0.2 rounded-full text-white z-10">HOT</span>
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden mb-2 border border-brand-blue/50 shadow-md group-hover:scale-105 transition bg-blue-900/30">
+                        <img src="Free Fire.png" alt="Free Fire" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/3b82f6/ffffff?text=FF'">
+                    </div>
+                    <span class="text-xs font-bold text-white line-clamp-1">Free Fire</span>
+                </button>
+
+                <!-- Game 2: Mobile Legends -->
+                <button onclick="switchGame('mlbb', 'Mobile Legends: Bang Bang', 'MLBB.png')" id="card-mlbb" class="game-card bg-brand-card hover:bg-brand-cardHover p-3 rounded-2xl flex flex-col items-center text-center transition-all duration-200 relative group border border-brand-border active:scale-95">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden mb-2 border border-gray-700 shadow-md group-hover:scale-105 transition bg-cyan-900/30">
+                        <img src="MLBB.png" alt="MLBB" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/0284c7/ffffff?text=MLBB'">
+                    </div>
+                    <span class="text-xs font-bold text-gray-300 line-clamp-1">MLBB</span>
+                </button>
+
+                <!-- Game 3: Roblox -->
+                <button onclick="switchGame('roblox', 'Roblox', 'Roblox.png')" id="card-roblox" class="game-card bg-brand-card hover:bg-brand-cardHover p-3 rounded-2xl flex flex-col items-center text-center transition-all duration-200 relative group border border-brand-border active:scale-95">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden mb-2 border border-gray-700 shadow-md group-hover:scale-105 transition bg-slate-800">
+                        <img src="Roblox.png" alt="Roblox" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/334155/ffffff?text=Roblox'">
+                    </div>
+                    <span class="text-xs font-bold text-gray-300 line-clamp-1">Roblox</span>
+                </button>
+
+            </div>
+        </section>
+
+        <!-- Selected Game Header -->
+        <section id="topup-section" class="scroll-mt-20">
+            <div class="bg-gradient-to-r from-brand-card via-[#111c33] to-brand-card rounded-2xl p-4 border border-brand-border shadow-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl overflow-hidden border border-brand-blue shadow bg-brand-input">
+                        <img id="selected-game-img" src="Free Fire.png" alt="Game Logo" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150/3b82f6/ffffff?text=TP'">
+                    </div>
+                    <div>
+                        <h3 id="selected-game-title" class="text-lg font-black text-white">Free Fire</h3>
+                        <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span>ຈ່າຍເງິນປອດໄພ 100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <span class="bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 text-[10px] font-bold px-2.5 py-1 rounded-full hidden sm:block">
+                    ONLINE TOPUP
+                </span>
+            </div>
+        </section>
+
+        <!-- STEP 1: LOGIN / ACCOUNT INFO -->
+        <section class="bg-[#1e293b] rounded-2xl p-5 border border-brand-border shadow-xl space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-full bg-brand-blue text-white font-extrabold flex items-center justify-center text-sm shadow">1</span>
+                <h3 class="text-base font-extrabold text-white">ຂໍ້ມູນບັນຊີຜູ້ຫຼິ້ນ (Account Information)</h3>
+            </div>
+
+            <!-- Dynamic Input Container -->
+            <div id="login-inputs-container" class="space-y-3">
+                <div class="space-y-2">
+                    <label class="text-xs text-gray-300 font-semibold">ID ຜູ້ຫຼິ້ນ (Player ID)</label>
+                    <input type="text" id="ff-id" placeholder="ໂປຣດໃສ່ ID ຜູ້ຫຼິ້ນ (ຕົວຢ່າງ: 123456789)" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                </div>
+            </div>
+
+            <button onclick="confirmSubmitAccount()" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-3 rounded-xl shadow-lg transition active:scale-95 duration-150">
+                ຢືນຢັນຂໍ້ມູນບັນຊີ
+            </button>
+            <p id="id-status-msg" class="text-xs hidden"></p>
+        </section>
+
+        <!-- STEP 2: SELECT PACKAGE -->
+        <section class="bg-[#1e293b] rounded-2xl p-5 border border-brand-border shadow-xl space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-full bg-brand-blue text-white font-extrabold flex items-center justify-center text-sm shadow">2</span>
+                <h3 class="text-base font-extrabold text-white">ເລືອກແພັກເກດ / ມູນຄ່າ</h3>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="package-grid">
+                <!-- Dynamically rendered package buttons -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Popup for Login / Register -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-[#1e293b] border border-brand-border rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative modal-fade">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold transition">✕</button>
+            <h3 id="modal-title" class="text-lg font-extrabold text-white">ເຂົ້າສູ່ລະບົບ</h3>
+            
+            <div id="modal-body" class="space-y-3"></div>
+
+            <button onclick="handleAuthAction()" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-3 rounded-xl shadow-lg transition active:scale-95">
+                ຢືນຢັນ
+            </button>
+            <div class="flex justify-between items-center text-xs pt-1">
+                <span id="auth-switch-text" class="text-gray-400">ຍັງບໍ່ມີບັນຊີ? <a href="#" onclick="openModal('register'); return false;" class="text-brand-blue font-bold hover:underline">ສະໝັກສະມາຊິກ</a></span>
+                <a href="#" onclick="openForgotPasswordModal(); return false;" class="text-gray-400 hover:text-white transition">ລືມລະຫັດຜ່ານ?</a>
+            </div>
+            <p id="modal-msg" class="text-xs text-center hidden"></p>
+        </div>
+    </div>
+
+    <!-- General Popup Modal -->
+    <div id="general-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-[#1e293b] border border-brand-border rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative modal-fade max-h-[90vh] overflow-y-auto">
+            <button onclick="closeGeneralModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold transition">✕</button>
+            <h3 id="general-modal-title" class="text-lg font-extrabold text-white">ຫົວຂໍ້</h3>
+            <div id="general-modal-body" class="space-y-3 text-sm text-gray-300"></div>
+        </div>
+    </div>
+
+    <!-- Script helper -->
+    <script>
+        // 1. ການຕັ້ງຄ່າເຊື່ອມຕໍ່ Firebase Server Database ຂອງເວັບ Tidphuchun[cite: 9]
+        const firebaseConfig = {
+            apiKey: "AIzaSyAk3QQbm9kaApnDoIJFBD23el8T3BdCIXA",
+            authDomain: "tidphuchun.firebaseapp.com",
+            databaseURL: "https://tidphuchun-default-rtdb.firebaseio.com",
+            projectId: "tidphuchun",
+            storageBucket: "tidphuchun.firebasestorage.app",
+            messagingSenderId: "158318608803",
+            appId: "1:158318608803:web:7b1bc5a892273223b19a16",
+            measurementId: "G-EVTLK76X4B"
+        };
+
+        // ເລີ່ມຕົ້ນເຊື່ອມຕໍ່ Firebase Database[cite: 9]
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentSelectedGameId = 'ff';
+        let currentGame = 'Free Fire';
+        let currentSelectedPackage = 'ຍັງບໍ່ໄດ້ເລືອກ';
+        let currentAuthMode = 'login';
+        let isLogined = false;
+        let currentUser = '';
+        let isAdmin = false;
+        let userBalance = 0; // ຕົວແປເກັບຍອດເງິນຂອງຜູ້ໃຊ້[cite: 9]
+
+        let adminStoreData = {
+            totalSales: '0 ₭',
+            totalTopup: '0 ₭',
+            packages: [
+                { id: '1', gameId: 'ff', gameName: 'Free Fire', name: 'ແພັກເກດ 1 (25 ເພັດ)', price: '5,000 ₭' },
+                { id: '2', gameId: 'ff', gameName: 'Free Fire', name: 'ແພັກເກດ 2 (50 ເພັດ)', price: '10,000 ₭' },
+                { id: '3', gameId: 'mlbb', gameName: 'Mobile Legends', name: 'ແພັກເກດ 3 (ສາຍເພັດ)', price: '20,000 ₭' },
+                { id: '4', gameId: 'roblox', gameName: 'Roblox', name: 'ແພັກເກດ 4 (Robux)', price: '15,000 ₭' }
+            ],
+            pendingCards: [],
+            pendingTopups: []
+        };
+
+        // ດຶງຂໍ້ມູນແພັກເກດຈາກ Realtime Database ແບບ Real-time[cite: 9]
+        db.ref('packages/').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                adminStoreData.packages = Object.values(data);
+                renderPackagesUI();
+            } else {
+                adminStoreData.packages = [];
+                renderPackagesUI();
+            }
+        });
+
+        function renderPackagesUI() {
+            const grid = document.getElementById('package-grid');
+            const filteredPackages = adminStoreData.packages.filter(p => p.gameId === currentSelectedGameId);
+            
+            if (filteredPackages.length === 0) {
+                grid.innerHTML = `<p class="col-span-3 text-xs text-gray-400 text-center py-4">ຍັງບໍ່ມີແພັກເກດສຳລັບເກມນີ້</p>`;
+                return;
+            }
+
+            grid.innerHTML = filteredPackages.map(p => `
+                <button onclick="selectPackage(this, '${p.name} (${p.price})')" class="package-card bg-brand-card hover:bg-brand-cardHover border border-brand-border p-4 rounded-xl text-left transition-all duration-200 flex flex-col justify-between relative group active:scale-95">
+                    <div>
+                        <div class="text-brand-blue font-black text-sm mb-1">⚡ ${p.name}</div>
+                        <p class="text-[11px] text-gray-400">ເຕີມມູນຄ່າ ${p.price}</p>
+                    </div>
+                    <div class="mt-3 text-right">
+                        <span class="text-sm font-extrabold text-white">${p.price}</span>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        renderPackagesUI();
+
+        function switchGame(id, name, imgFile) {
+            currentSelectedGameId = id;
+            currentGame = name;
+            document.getElementById('selected-game-title').innerText = name;
+            document.getElementById('selected-game-img').src = imgFile;
+            document.getElementById('banner-title').innerText = 'ເຕີມ ' + name + ' ຮັບໂບນັດ 300%';
+
+            document.querySelectorAll('.game-card').forEach(c => c.classList.remove('active-game-card'));
+            document.getElementById('card-' + id).classList.add('active-game-card');
+
+            renderPackagesUI();
+
+            const container = document.getElementById('login-inputs-container');
+            if(id === 'ff') {
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ID ຜູ້ຫຼິ້ນ (Player ID)</label>
+                        <input type="text" id="ff-id" placeholder="ໂປຣດໃສ່ ID ຜູ້ຫຼິ້ນ (ຕົວຢ່າງ: 123456789)" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                `;
+            } else if(id === 'mlbb') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2 space-y-1">
+                            <label class="text-xs text-gray-300 font-semibold">User ID</label>
+                            <input type="text" id="ml-userid" placeholder="ໃສ່ User ID" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                        <div class="col-span-1 space-y-1">
+                            <label class="text-xs text-gray-300 font-semibold">Zone ID</label>
+                            <input type="text" id="ml-zoneid" placeholder="(1234)" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                    </div>
+                `;
+            } else if(id === 'roblox') {
+                container.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="space-y-1">
+                            <label class="text-xs text-gray-300 font-semibold">ຊື່ຜູ້ໃຊ້ Roblox (Username)</label>
+                            <input type="text" id="rbx-user" placeholder="ໃສ່ຊື່ Roblox ຂອງທ່ານ" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs text-gray-300 font-semibold">ລະຫັດຜ່ານ (Password)</label>
+                            <input type="password" id="rbx-pass" placeholder="ໃສ່ລະຫັດຜ່ານ" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-xs text-gray-300 font-semibold">ເບີໂທລະສັບ (ກໍລະນີຕິດຢືນຢັນ 2 ຊັ້ນ)</label>
+                            <input type="tel" id="rbx-phone" placeholder="ໃສ່ເບີໂທລະສັບ (ຖ້າມີ)" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('id-status-msg').classList.add('hidden');
+        }
+
+        function confirmSubmitAccount() {
+            showConfirmDialog('ຢືນຢັນການສົ່ງຂໍ້ມູນ', 'ທ່ານຕ້ອງການຢືນຢັນຂໍ້ມູນບັນຊີນີ້ແທ້ໆ ຫລື ບໍ່?', () => {
+                submitAccount();
+            });
+        }
+
+        function submitAccount() {
+            const msg = document.getElementById('id-status-msg');
+            msg.classList.remove('hidden');
+
+            if (!isLogined) {
+                msg.className = 'text-xs text-rose-500 mt-2 text-center font-bold animate-pulse';
+                msg.innerText = '✗ ກະລຸນາເຂົ້າສູ່ລະບົບ ຫຼື ສະໝັກສະມາຊິກກ່ອນ!';
+                closeGeneralModal();
+                return;
+            }
+
+            let isValid = true;
+            let playerId = '';
+            if (currentSelectedGameId === 'ff') {
+                playerId = document.getElementById('ff-id') ? document.getElementById('ff-id').value.trim() : '';
+                if (!playerId) isValid = false;
+            } else if (currentSelectedGameId === 'mlbb') {
+                let uId = document.getElementById('ml-userid') ? document.getElementById('ml-userid').value.trim() : '';
+                let zId = document.getElementById('ml-zoneid') ? document.getElementById('ml-zoneid').value.trim() : '';
+                playerId = `${uId} (${zId})`;
+                if (!uId || !zId) isValid = false;
+            } else if (currentSelectedGameId === 'roblox') {
+                playerId = document.getElementById('rbx-user') ? document.getElementById('rbx-user').value.trim() : '';
+                if (!playerId) isValid = false;
+            }
+
+            if (!isValid) {
+                msg.className = 'text-xs text-rose-500 mt-2 text-center font-bold';
+                msg.innerText = '✗ ກະລຸນາໃສ່ຂໍ້ມູນໃຫ້ຖືກຕ້ອງ';
+                showCustomAlert('ແຈ້ງເຕືອນ', 'ກະລຸນາໃຊ້ຂໍ້ມູນໃຫ້ຖືກຕ້ອງ');
+            } else {
+                msg.className = 'text-xs text-emerald-400 mt-2 text-center font-bold';
+                msg.innerText = '✓ ບັນທຶກຂໍ້ມູນບັນຊີສຳເລັດ!';
+
+                const topupId = Date.now();
+                const topupData = {
+                    id: String(topupId),
+                    user: currentUser,
+                    game: currentGame,
+                    playerId: playerId,
+                    package: currentSelectedPackage,
+                    timestamp: topupId
+                };
+
+                adminStoreData.pendingTopups.push(topupData);
+                db.ref('orders/' + topupId).set(topupData);
+
+                showCustomAlert('ສຳເລັດ', 'ຂໍ້ຄວາມຂອງທ່ານຖືກສົ່ງໄປຫາແອັດມິນແລ້ວ');
+            }
+        }
+
+        function selectPackage(el, packageInfo) {
+            currentSelectedPackage = packageInfo;
+            document.querySelectorAll('.package-card').forEach(c => c.classList.remove('border-brand-blue', 'bg-brand-cardHover'));
+            el.classList.add('border-brand-blue', 'bg-brand-cardHover');
+        }
+
+        function openModal(mode) {
+            currentAuthMode = mode;
+            const modal = document.getElementById('auth-modal');
+            const title = document.getElementById('modal-title');
+            const body = document.getElementById('modal-body');
+            document.getElementById('modal-msg').classList.add('hidden');
+            modal.classList.remove('hidden');
+
+            if (mode === 'login') {
+                title.innerText = 'ເຂົ້າສູ່ລະບົບ';
+                body.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ຊື່ຜູ້ໃຊ້ (Username)</label>
+                        <input type="text" id="auth-user" placeholder="ໃສ່ຊື່ຜູ້ໃຊ້" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ລະຫັດຜ່ານ (Password)</label>
+                        <input type="password" id="auth-pass" placeholder="ໃສ່ລະຫັດຜ່ານ" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                `;
+            } else {
+                title.innerText = 'ສະໝັກສະມາຊິກ (ບັນທຶກລົງ Server)';
+                body.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ຊື່ຜູ້ໃຊ້ (Username)</label>
+                        <input type="text" id="auth-user" placeholder="ຕັ້ງຊື່ຜູ້ໃຊ້" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ອີເມວ (Email)</label>
+                        <input type="email" id="auth-email" placeholder="example@gmail.com" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs text-gray-300 font-semibold">ຕັ້ງລະຫັດຜ່ານ (Password)</label>
+                        <input type="password" id="auth-pass" placeholder="ຕັ້ງລະຫັດຜ່ານ" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                    </div>
+                `;
+            }
+        }
+
+        function openForgotPasswordModal() {
+            closeModal();
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+            modal.classList.remove('hidden');
+
+            title.innerText = 'ກູ້ຄືນລະຫັດຜ່ານ';
+            body.innerHTML = `
+                <div class="space-y-3">
+                    <p class="text-xs text-gray-400">ກະລຸນາໃສ່ອີເມວທີ່ທ່ານໃຊ້ລົງທະບຽນ ເພື່ອຮັບລິ້ງຕັ້ງລະຫັດຜ່ານໃໝ່</p>
+                    <input type="email" id="forgot-email" placeholder="ໃສ່ອີເມວຂອງທ່ານ" class="w-full bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition">
+                    <button onclick="submitForgotPassword()" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-3 rounded-xl shadow-lg transition active:scale-95">
+                        ສົ່ງລິ້ງຢືນຢັນ
+                    </button>
+                </div>
+            `;
+        }
+
+        function submitForgotPassword() {
+            const email = document.getElementById('forgot-email').value.trim();
+            if(!email) {
+                showCustomAlert('ແຈ້ງເຕືອນ', 'ກະລຸນາໃຊ້ຂໍ້ມູນໃຫ້ຖືກຕ້ອງ');
+                return;
+            }
+            showCustomAlert('ສຳເລັດ', 'ຂໍ້ຄວາມຂອງທ່ານຖືກສົ່ງໄປຫາແອັດມິນແລ້ວ');
+        }
+
+        function closeModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        // ລະບົບກວດສອບການເຂົ້າສູ່ລະບົບ ແລະ ສະໝັກສະມາຊິກຜ່ານ Firebase Server Database ຕົວຈິງ
+        function handleAuthAction() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value.trim();
+            const msg = document.getElementById('modal-msg');
+            msg.classList.remove('hidden');
+
+            if (!user || !pass) {
+                msg.className = 'text-xs text-rose-500 font-bold';
+                msg.innerText = '✗ ກະລຸນາໃສ່ຂໍ້ມູນໃຫ້ຄົບຖ້ວນ';
+                return;
+            }
+
+            // ຖ້າເປັນໂໝດສະໝັກສະມາຊິກ
+            if (currentAuthMode === 'register') {
+                const email = document.getElementById('auth-email') ? document.getElementById('auth-email').value.trim() : '';
+                
+                db.ref('users/' + user).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        msg.className = 'text-xs text-rose-500 font-bold';
+                        msg.innerText = '✗ ຊື່ຜູ້ໃຊ້ນี้ມີຄົນໃຊ້ແລ້ວ!';
+                    } else {
+                        db.ref('users/' + user).set({
+                            username: user,
+                            email: email,
+                            password: pass,
+                            balance: 10000,
+                            createdAt: Date.now()
+                        });
+                        msg.className = 'text-xs text-emerald-400 font-bold';
+                        msg.innerText = '✓ ສະໝັກສະມາຊິກສຳເລັດ!';
+                        setTimeout(() => { closeModal(); }, 800);
+                    }
+                });
+            } 
+            // ຖ້າເປັນໂໝດເຂົ້າສູ່ລະບົບ
+            else {
+                // ກວດສອບ Admin ພິເສດ
+                if (user === 'ແອດມິນບອຍ' && pass === 'hh121212') {
+                    isLogined = true;
+                    currentUser = user;
+                    isAdmin = true;
+                    userBalance = 50000;
+                    msg.className = 'text-xs text-emerald-400 font-bold';
+                    msg.innerText = '✓ ເຂົ້າສູ່ລະບົບແອດມິນສຳເລັດ!';
+                    setTimeout(() => {
+                        closeModal();
+                        updateHeaderProfile();
+                    }, 800);
+                    return;
+                }
+
+                // ກວດສອບຂໍ້ມູນຈາກ Database
+                db.ref('users/' + user).once('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        if (userData.password === pass) {
+                            isLogined = true;
+                            currentUser = user;
+                            isAdmin = false;
+                            userBalance = userData.balance || 0;
+
+                            msg.className = 'text-xs text-emerald-400 font-bold';
+                            msg.innerText = '✓ ເຂົ້າສູ່ລະບົບສຳເລັດ!';
+                            setTimeout(() => {
+                                closeModal();
+                                updateHeaderProfile();
+                            }, 800);
+                        } else {
+                            msg.className = 'text-xs text-rose-500 font-bold';
+                            msg.innerText = '✗ ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!';
+                        }
+                    } else {
+                        msg.className = 'text-xs text-rose-500 font-bold';
+                        msg.innerText = '✗ ບໍ່ພົບບັນຊີຜູ້ໃຊ້ນີ້ໃນລະບົບ!';
+                    }
+                });
+            }
+        }
+
+        function logout() {
+            isLogined = false;
+            isAdmin = false;
+            currentUser = '';
+            userBalance = 0;
+            
+            const area = document.getElementById('header-auth-area');
+            area.innerHTML = `
+                <button onclick="openModal('login')" class="text-xs font-bold px-3 py-2 rounded-xl border border-brand-border bg-brand-card hover:bg-brand-cardHover text-gray-200 transition active:scale-95">
+                    ເຂົ້າສູ່ລະບົບ
+                </button>
+                <button onclick="openModal('register')" class="text-xs font-bold px-3 py-2 rounded-xl bg-brand-blue hover:bg-brand-darkBlue text-white shadow-lg shadow-brand-blue/30 transition active:scale-95">
+                    ສະໝັກສະມາຊິກ
+                </button>
+            `;
+            showToastNotification('ອອກຈາກລະບົບສຳເລັດແລ້ວ!');
+        }
+
+        function updateHeaderProfile() {
+            const area = document.getElementById('header-auth-area');
+            let adminBadge = isAdmin ? `<span class="absolute -top-1 -right-1 bg-rose-500 text-[9px] px-1 rounded-full text-white font-bold">Admin</span>` : '';
+            area.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold text-white">${currentUser}</p>
+                        <p class="text-[11px] text-emerald-400 font-semibold">${userBalance.toLocaleString()} ₭</p>
+                    </div>
+                    <div class="relative">
+                        <button onclick="toggleProfileDropdown()" class="w-10 h-10 rounded-full overflow-hidden border-2 border-brand-blue shadow-md flex items-center justify-center bg-brand-card relative active:scale-95 transition">
+                            <img src="https://via.placeholder.com/150/3b82f6/ffffff?text=USER" alt="Profile" class="w-full h-full object-cover">
+                            ${adminBadge}
+                        </button>
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-52 bg-[#1e293b] border border-brand-border rounded-xl shadow-2xl py-2 z-50 modal-fade">
+                            <div class="px-4 py-2 border-b border-brand-border sm:hidden">
+                                <p class="text-xs font-bold text-white">${currentUser}</p>
+                                <p class="text-[11px] text-emerald-400 font-semibold">ຍອດເງິນ: ${userBalance.toLocaleString()} ₭</p>
+                            </div>
+                            <button onclick="openGeneralModal('notification')" class="w-full text-left px-4 py-2 text-xs text-gray-200 hover:bg-brand-cardHover transition">🔔 ເບິ່ງການແຈ້ງເຕືອນ</button>
+                            <button onclick="openGeneralModal('history')" class="w-full text-left px-4 py-2 text-xs text-gray-200 hover:bg-brand-cardHover transition">📜 ເບິ່ງປະຫວັດການເຕີມ</button>
+                            <button onclick="openGeneralModal('topup')" class="w-full text-left px-4 py-2 text-xs text-brand-blue font-bold hover:bg-brand-cardHover border-t border-brand-border mt-1 transition">💳 ເຕີມເງິນເຂົ້າເວັບ</button>
+                            ${isAdmin ? `<button onclick="openGeneralModal('admin')" class="w-full text-left px-4 py-2 text-xs text-rose-400 font-bold hover:bg-brand-cardHover border-t border-brand-border mt-1 transition">⚙️ ແຜງຄວບຄຸມແອດມິນ (Database)</button>` : ''}
+                            <button onclick="logout()" class="w-full text-left px-4 py-2 text-xs text-rose-500 font-bold hover:bg-brand-cardHover border-t border-brand-border mt-1 transition">🚪 ອອກຈາກລະບົບ</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleProfileDropdown() {
+            const drop = document.getElementById('profile-dropdown');
+            drop.classList.toggle('hidden');
+        }
+
+        function openGeneralModal(type) {
+            document.getElementById('profile-dropdown').classList.add('hidden');
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+            modal.classList.remove('hidden');
+
+            if (type === 'notification') {
+                title.innerText = 'ການແຈ້ງເຕືອນ';
+                body.innerHTML = `<p class="text-gray-400">ຍັງບໍ່ມີການແຈ້ງເຕືອນໃໝ່ໃນລະບົບ.</p>`;
+            } else if (type === 'history') {
+                title.innerText = 'ປະຫວັດການເຕີມເກມ';
+                body.innerHTML = `<p class="text-gray-400">ຍັງບໍ່ມີປະຫວັດການເຮັດຸລະກຳ.</p>`;
+            } else if (type === 'topup') {
+                title.innerText = 'ເຕີມເງິນເຂົ້າເວັບ (ບັດເຕີມເນັດ)';
+                body.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-300 font-semibold">ເລືອກເຄືອຂ່າຍບັດ</label>
+                            <select id="telco-select" class="w-full mt-1 bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition">
+                                <option value="Unitel">Unitel (ຢູນິເທວ)</option>
+                                <option value="Lao Telecom">Lao Telecom (ລາວໂທລະຄົມ)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-300 font-semibold">ລະຫັດບັດເຕີມເງິນ (Serial / Pin)</label>
+                            <input type="text" id="topup-code" placeholder="ໃສ່ລະຫັດບັດເຕີມເງິນ" class="w-full mt-1 bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none transition">
+                        </div>
+                        <button onclick="confirmSubmitTopup()" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-3 rounded-xl shadow-lg transition active:scale-95 mt-2">
+                            ຢືນຢັນການເຕີມເງິນ
+                        </button>
+                    </div>
+                `;
+            } else if (type === 'admin') {
+                renderAdminDashboard();
+            }
+        }
+
+        function confirmSubmitTopup() {
+            const code = document.getElementById('topup-code').value.trim();
+            if(!code) {
+                showCustomAlert('ແຈ້ງເຕືອນ', 'ກະລຸນາໃຊ້ຂໍ້ມູນໃຫ້ຖືກຕ້ອງ');
+                return;
+            }
+            showConfirmDialog('ຢືນຢັນການເຕີມເງິນ', 'ທ່ານຕ້ອງການສົ່ງຂໍ້ມູນບັດເຕີມເງິນນີ້ແທ້ໆ ຫລື ບໍ່?', () => {
+                submitTopupCard();
+            });
+        }
+
+        function submitTopupCard() {
+            const telco = document.getElementById('telco-select').value;
+            const code = document.getElementById('topup-code').value.trim();
+
+            const cardId = Date.now();
+            const cardData = {
+                id: String(cardId),
+                user: currentUser || 'ລູກຄ້າທົ່ວໄປ',
+                telco: telco,
+                code: code,
+                amount: '10,000 ₭'
+            };
+
+            adminStoreData.pendingCards.push(cardData);
+            db.ref('cards/' + cardId).set(cardData);
+
+            showCustomAlert('ສຳເລັດ', 'ຂໍ້ຄວາມຂອງທ່ານຖືກສົ່ງໄປຫາແອັດມິນແລ້ວ');
+        }
+
+        function renderAdminDashboard() {
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+            title.innerText = '⚙️ Tidphuchun - ແຜງຄວບຄຸມແອດມິນ (Server Database Connected)';
+            
+            let packagesHTML = adminStoreData.packages.map(p => `
+                <div class="flex justify-between items-center bg-brand-input p-2.5 rounded-xl border border-brand-border">
+                    <div class="text-xs text-white">
+                        <span class="text-cyan-400 font-bold">[${p.gameName}]</span> ${p.name} - <b>${p.price}</b>
+                    </div>
+                    <button onclick="confirmDeletePackage('${p.id}')" class="text-[11px] bg-rose-600 px-2.5 py-1 rounded-lg text-white font-bold hover:bg-rose-700 transition">ລົບ</button>
+                </div>
+            `).join('');
+
+            let topupsHTML = adminStoreData.pendingTopups.map(t => `
+                <div class="bg-brand-input p-3 rounded-xl border border-brand-border space-y-1">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-white font-bold">👤 ${t.user}</span>
+                        <span class="text-cyan-400 font-bold">${t.game}</span>
+                    </div>
+                    <p class="text-xs text-gray-300">ID: <span class="text-white font-semibold">${t.playerId}</span></p>
+                    <p class="text-xs text-emerald-400 font-bold">ແພັກເກດ: ${t.package}</p>
+                    <div class="flex justify-end gap-1 pt-1">
+                        <button onclick="approveTopup(${t.id})" class="text-[10px] bg-emerald-600 px-2 py-1 rounded-lg text-white font-bold">ອະນຸມັດສຳເລັດ</button>
+                        <button onclick="rejectTopup(${t.id})" class="text-[10px] bg-rose-600 px-2 py-1 rounded-lg text-white font-bold">ຍົກເລີກ</button>
+                    </div>
+                </div>
+            `).join('');
+
+            let cardsHTML = adminStoreData.pendingCards.map(c => `
+                <div class="flex justify-between items-center bg-brand-input p-2.5 rounded-xl border border-brand-border">
+                    <div class="text-xs">
+                        <p class="text-white font-bold">${c.user} (${c.telco})</p>
+                        <p class="text-gray-400">ລະຫັດບັດ: ${c.code} | ${c.amount}</p>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="confirmApproveCard('${c.id}')" class="text-[10px] bg-emerald-600 px-2 py-1 rounded-lg text-white font-bold">ອະນຸມັດ</button>
+                        <button onclick="confirmRejectCard('${c.id}')" class="text-[10px] bg-rose-600 px-2 py-1 rounded-lg text-white font-bold">ປະຕິເສດ</button>
+                    </div>
+                </div>
+            `).join('');
+
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-brand-input p-3 rounded-xl border border-brand-border text-center">
+                            <p class="text-[11px] text-gray-400">ຍອດຂາຍລວມ</p>
+                            <p class="text-sm font-black text-emerald-400">${adminStoreData.totalSales}</p>
+                        </div>
+                        <div class="bg-brand-input p-3 rounded-xl border border-brand-border text-center">
+                            <p class="text-[11px] text-gray-400">ຍອດເຕີມບັດລວມ</p>
+                            <p class="text-sm font-black text-brand-blue">${adminStoreData.totalTopup}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="text-xs font-bold text-white">🎮 ລາຍການເຕີມເກມທີ່ລູກຄ້າເລືອກ (ລໍຖ້າກວດສອບ):</p>
+                        <div class="space-y-2 max-h-40 overflow-y-auto">${topupsHTML || '<p class="text-xs text-gray-400">ຍັງບໍ່ມີລາຍການເຕີມເກມ</p>'}</div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-bold text-white">📦 ຈັດການແພັກເກດເຕີມເກມ:</p>
+                            <button onclick="openAddPackageModal()" class="text-[10px] bg-brand-blue text-white px-2 py-1 rounded-lg font-bold hover:bg-brand-darkBlue">+ ເພີ່ມແພັກເກດໃໝ່</button>
+                        </div>
+                        <div class="space-y-2 max-h-36 overflow-y-auto">${packagesHTML || '<p class="text-xs text-gray-400">ບໍ່ມີແພັກເກດ</p>'}</div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <p class="text-xs font-bold text-white">💳 ລາຍການບັດເຕີມເນັດລໍຖ້າກວດສອບ:</p>
+                        <div class="space-y-2 max-h-36 overflow-y-auto">${cardsHTML || '<p class="text-xs text-gray-400">ບໍ່ມີລາຍການຄ້າງກວດສອບ</p>'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function approveTopup(id) {
+            adminStoreData.pendingTopups = adminStoreData.pendingTopups.filter(t => t.id != id);
+            db.ref('orders/' + id).remove();
+            renderAdminDashboard();
+            showToastNotification('ອະນຸມັດລາຍການເຕີມເກມສຳເລັດ!');
+        }
+
+        function rejectTopup(id) {
+            adminStoreData.pendingTopups = adminStoreData.pendingTopups.filter(t => t.id != id);
+            db.ref('orders/' + id).remove();
+            renderAdminDashboard();
+            showToastNotification('ຍົກເລີກລາຍການເຕີມເກມແລ້ວ!');
+        }
+
+        function openAddPackageModal() {
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+
+            title.innerText = '➕ ເພີ່ມແພັກເກດໃໝ່ (ບັນທຶກລົງ Database)';
+            body.innerHTML = `
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-xs text-gray-300 font-semibold">ເລືອກເກມທີ່ຕ້ອງການເພີ່ມ</label>
+                        <select id="add-pkg-game" class="w-full mt-1 bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition">
+                            <option value="ff">Free Fire</option>
+                            <option value="mlbb">Mobile Legends</option>
+                            <option value="roblox">Roblox</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-300 font-semibold">ຊື່ແພັກເກດ (ເຊັ່ນ: ແພັກເກດ 4 - 300 ເພັດ)</label>
+                        <input type="text" id="add-pkg-name" placeholder="ໃສ່ຊື່ແພັກເກດ" class="w-full mt-1 bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-300 font-semibold">ລາຄາ (ເຊັ່ນ: 50,000 ₭)</label>
+                        <input type="text" id="add-pkg-price" placeholder="ໃສ່ລາຄາ" class="w-full mt-1 bg-brand-input border border-brand-border focus:border-brand-blue rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition">
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="renderAdminDashboard()" class="w-1/2 bg-gray-700 hover:bg-gray-600 text-white font-bold text-sm py-2.5 rounded-xl transition">
+                            ກັບຄືນ
+                        </button>
+                        <button onclick="saveNewPackage()" class="w-1/2 bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-2.5 rounded-xl shadow-lg transition">
+                            ບັນທຶກ
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveNewPackage() {
+            const gameId = document.getElementById('add-pkg-game').value;
+            const name = document.getElementById('add-pkg-name').value.trim();
+            const price = document.getElementById('add-pkg-price').value.trim();
+            
+            if(!name || !price) {
+                showCustomAlert('ແຈ້ງເຕືອນ', 'ກະລຸນາໃຊ້ຂໍ້ມູນໃຫ້ຖືກຕ້ອງ');
+                return;
+            }
+
+            let gameName = 'Free Fire';
+            if(gameId === 'mlbb') gameName = 'Mobile Legends';
+            if(gameId === 'roblox') gameName = 'Roblox';
+
+            const pkgId = 'pkg_' + Date.now();
+
+            db.ref('packages/' + pkgId).set({
+                id: pkgId,
+                gameId: gameId,
+                gameName: gameName,
+                name: name,
+                price: price
+            }).then(() => {
+                renderPackagesUI();
+                renderAdminDashboard();
+                showCustomAlert('ສຳເລັດ', 'ບັນທຶກແພັກເກດລົງ Database ສຳເລັດແລ້ວ!');
+            });
+        }
+
+        function confirmDeletePackage(id) {
+            showConfirmDialog('ຢືນຢັນການລົບ', 'ທ່ານຕ້ອງການລົບແພັກເກດນີ້ແທ້ໆ ຫລື ບໍ່?', () => {
+                deletePackage(id);
+            });
+        }
+
+        function deletePackage(id) {
+            const dbKey = String(id);
+            db.ref('packages/' + dbKey).remove().then(() => {
+                adminStoreData.packages = adminStoreData.packages.filter(p => String(p.id) !== dbKey);
+                renderPackagesUI();
+                renderAdminDashboard();
+                showCustomAlert('ສຳເລັດ', 'ລົບແພັກເກດອອກຈາກ Database ສຳເລັດແລ້ວ!');
+            }).catch((error) => {
+                showCustomAlert('ຜິດພາດ', 'ບໍ່ສາມາດລົບໄດ້: ' + error.message);
+            });
+        }
+
+        function confirmApproveCard(id) {
+            showConfirmDialog('ຢືນຢັນການອະນຸມັດ', 'ທ່ານຕ້ອງການອະນຸມັດບັດນີ້ແທ້ໆ ຫລື ບໍ່?', () => {
+                approveCard(id);
+            });
+        }
+
+        function approveCard(id) {
+            adminStoreData.pendingCards = adminStoreData.pendingCards.filter(c => c.id != id);
+            db.ref('cards/' + id).remove();
+            renderAdminDashboard();
+            showToastNotification('ອະນຸມັດບັດສຳເລັດ!');
+        }
+
+        function confirmRejectCard(id) {
+            showConfirmDialog('ຢືນຢັນການປະຕິເສດ', 'ທ່ານຕ້ອງການປະຕິເສດບັດນີ້ແທ້ໆ ຫລື ບໍ່?', () => {
+                rejectCard(id);
+            });
+        }
+
+        function rejectCard(id) {
+            adminStoreData.pendingCards = adminStoreData.pendingCards.filter(c => c.id != id);
+            db.ref('cards/' + id).remove();
+            renderAdminDashboard();
+            showToastNotification('ປະຕິເສດບັດສຳເລັດແລ້ວ!');
+        }
+
+        function showConfirmDialog(titleText, messageText, onConfirmCallback) {
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+            modal.classList.remove('hidden');
+
+            title.innerText = titleText;
+            body.innerHTML = `
+                <div class="space-y-4 text-center py-2">
+                    <p class="text-sm text-white">${messageText}</p>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="closeGeneralModal()" class="w-1/2 bg-gray-700 hover:bg-gray-600 text-white font-bold text-sm py-2.5 rounded-xl transition">
+                            ຍົກເລີກ
+                        </button>
+                        <button id="confirm-yes-btn" class="w-1/2 bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-2.5 rounded-xl shadow-lg transition">
+                            ຕົກລົງ
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                onConfirmCallback();
+            };
+        }
+
+        function showCustomAlert(headerTitle, message) {
+            const modal = document.getElementById('general-modal');
+            const title = document.getElementById('general-modal-title');
+            const body = document.getElementById('general-modal-body');
+            modal.classList.remove('hidden');
+
+            title.innerText = headerTitle;
+            body.innerHTML = `
+                <div class="space-y-4 text-center py-2">
+                    <p class="text-sm text-white">${message}</p>
+                    <button onclick="${headerTitle.includes('ສຳເລັດ') && isAdmin ? 'renderAdminDashboard()' : 'closeGeneralModal()'}" class="w-full bg-brand-blue hover:bg-brand-darkBlue text-white font-bold text-sm py-2.5 rounded-xl shadow-lg transition">
+                        ຕົກລົງ (OK)
+                    </button>
+                </div>
+            `;
+        }
+
+        function showToastNotification(message) {
+            const existing = document.getElementById('toast-alert');
+            if(existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'toast-alert';
+            toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-brand-card border border-brand-blue text-white text-xs px-4 py-2.5 rounded-xl shadow-2xl z-50 modal-fade flex items-center gap-2';
+            toast.innerHTML = `<span>✨</span> <span>${message}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if(toast) toast.remove();
+            }, 2000);
+        }
+
+        function closeGeneralModal() {
+            document.getElementById('general-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
